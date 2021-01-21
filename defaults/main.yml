@@ -1,0 +1,18 @@
+---
+
+apache_packages:
+  - apache2
+  - apache2-utils
+
+listen_port: 8080
+server_root: /etc/apache2
+conf_path: /etc/apache2
+remove_default_vhost: false
+
+ports_to_listen:
+  - regexp: "^Listen "
+    line: "Listen {{ listen_port }}"
+
+mods_disabled: []
+mods_enabled:
+  - rewrite.load

@@ -1,0 +1,45 @@
+---
+
+- name: install Apache
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+    name: "{{ apache_packages }}"
+    state: present
+
+- name: configure Apache
+  lineinfile:
+    dest: "{{ server_root }}/ports.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  with_items: "{{ ports_to_listen }}"
+  notify: restart apache
+
+- name: enable Apache mods
+  file:
+    src: "{{ server_root }}/mods-available/{{ item }}"
+    dest: "{{ server_root }}/mods-enabled/{{ item }}"
+    state: link
+  with_items: "{{ mods_enabled }}"
+  notify: restart apache
+
+- name: disable Apache mods
+  file:
+    path: "{{ server_root }}/mods-enabled/{{ item }}"
+    state: absent
+  with_items: "{{ mods_disabled }}"
+  notify: restart apache
+
+- name: remove default vhost in sites-enabled
+  file:
+    path: "{{ conf_path }}/sites-enabled/000-default.conf"
+    state: absent
+  notify: restart apache
+  when: remove_default_vhost
+
+- name: ensure Apache is started and enabled
+  service:
+    name: apache2
+    state: started
+    enabled: true
