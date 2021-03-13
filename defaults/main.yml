@@ -3,6 +3,8 @@
 apache_packages:
   - apache2
   - apache2-utils
+  - libapache2-mpm-itk
+  - libapache2-mod-php
 
 listen_port: 8080
 server_root: /etc/apache2
