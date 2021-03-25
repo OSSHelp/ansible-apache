@@ -38,6 +38,14 @@
   notify: restart apache
   when: remove_default_vhost
 
+- name: hide apache version and server OS
+  blockinfile:
+    path: "{{ server_root }}/apache2.conf"
+    block: |
+      ServerSignature Off
+      ServerTokens Prod
+  notify: restart apache
+
 - name: ensure Apache is started and enabled
   service:
     name: apache2
