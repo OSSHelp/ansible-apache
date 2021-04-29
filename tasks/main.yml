@@ -1,46 +1,53 @@
 ---
 
-- name: install Apache
+- name: install main packages
   apt:
     update_cache: true
     cache_valid_time: 3600
     name: "{{ apache_packages }}"
     state: present
 
+- name: install additional modules
+  apt:
+    update_cache: true
+    cache_valid_time: 3600
+    name: "{{ apache_additional_modules }}"
+    state: present
+
 - name: configure Apache
   lineinfile:
-    dest: "{{ server_root }}/ports.conf"
+    dest: "{{ apache_server_root }}/ports.conf"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
     state: present
-  with_items: "{{ ports_to_listen }}"
+  with_items: "{{ apache_ports_to_listen }}"
   notify: restart apache
 
 - name: enable Apache mods
   file:
-    src: "{{ server_root }}/mods-available/{{ item }}"
-    dest: "{{ server_root }}/mods-enabled/{{ item }}"
+    src: "{{ apache_server_root }}/mods-available/{{ item }}"
+    dest: "{{ apache_server_root }}/mods-enabled/{{ item }}"
     state: link
-  with_items: "{{ mods_enabled }}"
+  with_items: "{{ apache_mods_enabled }}"
   notify: restart apache
 
 - name: disable Apache mods
   file:
-    path: "{{ server_root }}/mods-enabled/{{ item }}"
+    path: "{{ apache_server_root }}/mods-enabled/{{ item }}"
     state: absent
-  with_items: "{{ mods_disabled }}"
+  with_items: "{{ apache_mods_disabled }}"
   notify: restart apache
 
 - name: remove default vhost in sites-enabled
   file:
-    path: "{{ conf_path }}/sites-enabled/000-default.conf"
+    path: "{{ apache_conf_path }}/sites-enabled/000-default.conf"
     state: absent
   notify: restart apache
-  when: remove_default_vhost
+  when: apache_remove_default_vhost
 
 - name: hide apache version and server OS
   blockinfile:
-    path: "{{ server_root }}/apache2.conf"
+    path: "{{ apache_server_root }}/apache2.conf"
     block: |
       ServerSignature Off
       ServerTokens Prod
